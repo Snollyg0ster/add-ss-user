@@ -3,49 +3,37 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"fmt"
+	"log"
 	"os"
 	"sort"
 	"strconv"
 
-	password "github.com/Snollyg0ster/add-ss-user/src"
+	config "github.com/Snollyg0ster/add-ss-user/src/config"
+	password "github.com/Snollyg0ster/add-ss-user/src/password"
 )
-
-type Config struct {
-	Server        string            `json:"server"`
-	Local_address string            `json:"local_address"`
-	Local_port    int32             `json:"local_port"`
-	Port_password map[string]string `json:"port_password"`
-	Timeout       int64             `json:"timeout"`
-	Method        string            `json:"method"`
-	Fast_open     bool              `json:"fast_open"`
-	Users         map[string]string `json:"users"`
-}
 
 var configDir string = "test.json"
 var configOutDir string = "outest.json"
 
-var config Config
-
 func addUser(login string, pass string) {
 	if login == "" {
-		panic("Specify user login")
+		log.Fatal("Specify user login")
 	}
 
-	port, ok := config.Users[login]
+	port, ok := config.Config.Users[login]
 
 	if pass == "" {
-		pass = password.GeneratePassword(12, true, true, true)
+		pass = password.GeneratePassword(20, true, true, true)
 	}
 
 	if ok {
-		config.Port_password[port] = pass
+		config.Config.PortPassword[port] = pass
 		return
 	}
 
 	ports := []int{}
 
-	for port := range config.Port_password {
+	for port := range config.Config.PortPassword {
 		num, err := strconv.Atoi(port)
 
 		if err != nil {
@@ -68,8 +56,28 @@ func addUser(login string, pass string) {
 		// fmt.Println("newPort", newPort)
 	}
 
-	config.Users[login] = strconv.Itoa(newPort)
-	config.Port_password[strconv.Itoa(newPort)] = pass
+	config.Config.Users[login] = strconv.Itoa(newPort)
+	config.Config.PortPassword[strconv.Itoa(newPort)] = pass
+}
+
+func removeUser(login string) {
+	if login == "" {
+		log.Fatal("Specify user login")
+	}
+
+	port, ok := config.Config.Users[login]
+
+	if !ok {
+		log.Fatal("no such user")
+	}
+
+	delete(config.Config.Users, login)
+	delete(config.Config.PortPassword, port)
+}
+
+func writeConfigType() {
+	res, _ := json.MarshalIndent(config.Config, "", "    ")
+	os.WriteFile(configOutDir, res, 0644)
 }
 
 func main() {
@@ -79,32 +87,26 @@ func main() {
 
 	addLogin := add.String("login", "", "login for new user")
 	addPass := add.String("pass", "", "password for new user")
-	// removeLogin := remove.String("login", "", "use login to remove from config")
+	removeLogin := remove.String("login", "", "use login to remove from config")
 
 	configStr, err := os.ReadFile(configDir)
 
 	if err != nil {
-		panic("no such file")
+		log.Fatal("no such file")
 	}
 
-	json.Unmarshal(configStr, &config)
+	json.Unmarshal(configStr, &config.Config)
 
 	switch os.Args[1] {
 	case "add":
 		add.Parse(os.Args[2:])
-
 		addUser(*addLogin, *addPass)
-
-		res, _ := json.MarshalIndent(config, "", "    ")
-		fmt.Println(string(res))
-		os.WriteFile(configOutDir, res, 0644)
+		writeConfigType()
 
 	case "remove":
 		remove.Parse(os.Args[2:])
-
-		if *addLogin == "" {
-			panic("Specify user login")
-		}
+		removeUser(*removeLogin)
+		writeConfigType()
 
 	case "list":
 		list.Parse(os.Args[2:])
