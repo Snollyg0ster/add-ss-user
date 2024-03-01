@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	config "github.com/Snollyg0ster/add-ss-user/src/config"
+	logger "github.com/Snollyg0ster/add-ss-user/src/log"
 	password "github.com/Snollyg0ster/add-ss-user/src/password"
 )
 
@@ -53,7 +54,6 @@ func addUser(login string, pass string) {
 		}
 
 		newPort = port + 1
-		// fmt.Println("newPort", newPort)
 	}
 
 	config.Config.Users[login] = strconv.Itoa(newPort)
@@ -83,7 +83,6 @@ func writeConfigType() {
 func main() {
 	add := flag.NewFlagSet("add", flag.ExitOnError)
 	remove := flag.NewFlagSet("remove", flag.ExitOnError)
-	list := flag.NewFlagSet("list", flag.ExitOnError)
 
 	addLogin := add.String("login", "", "login for new user")
 	addPass := add.String("pass", "", "password for new user")
@@ -101,6 +100,7 @@ func main() {
 	case "add":
 		add.Parse(os.Args[2:])
 		addUser(*addLogin, *addPass)
+		logger.LogUser(*addLogin, config.Config)
 		writeConfigType()
 
 	case "remove":
@@ -109,7 +109,7 @@ func main() {
 		writeConfigType()
 
 	case "list":
-		list.Parse(os.Args[2:])
+		logger.LogUsers(config.Config)
 	}
 
 }
