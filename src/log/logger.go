@@ -17,7 +17,7 @@ func getUserLink(login string, config config.ConfigType) string {
 	pass := config.PortPassword[port]
 	encodedPass := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", config.Method, pass)))
 
-	return fmt.Sprintf("ss://%s@%s:%s#%v", encodedPass, config.Server, port, login)
+	return fmt.Sprintf("ss://%s@%s:%s#%v", encodedPass, config.MyServerIp, port, login)
 }
 
 func getUserData(login string, config config.ConfigType) []string {

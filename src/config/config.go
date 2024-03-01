@@ -9,6 +9,7 @@ type ConfigType struct {
 	Method       string            `json:"method"`
 	Fast_open    bool              `json:"fast_open"`
 	Users        map[string]string `json:"users"`
+	MyServerIp   string            `json:"my_server_ip"`
 }
 
 var Config ConfigType

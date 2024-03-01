@@ -14,7 +14,7 @@ import (
 )
 
 var configDir string = "test.json"
-var configOutDir string = "outest.json"
+var configOutDir string = "test.json"
 
 func addUser(login string, pass string) {
 	if login == "" {
@@ -53,8 +53,10 @@ func addUser(login string, pass string) {
 			break
 		}
 
-		newPort = port + 1
+		newPort = port
 	}
+
+	newPort++
 
 	config.Config.Users[login] = strconv.Itoa(newPort)
 	config.Config.PortPassword[strconv.Itoa(newPort)] = pass
